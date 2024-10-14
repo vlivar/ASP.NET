@@ -1,6 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PromoCodeFactory.Core.Abstractions.Repositories;
+using PromoCodeFactory.Core.Domain.PromoCodeManagement;
 using PromoCodeFactory.WebHost.Models;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PromoCodeFactory.WebHost.Controllers
@@ -10,14 +15,31 @@ namespace PromoCodeFactory.WebHost.Controllers
     /// </summary>
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class CustomersController
-        : ControllerBase
+    public class CustomersController : ControllerBase
     {
-        [HttpGet]
-        public Task<ActionResult<CustomerShortResponse>> GetCustomersAsync()
+        private readonly IRepository<Customer> _customerRepository;
+
+        public CustomersController(IRepository<Customer> customerRepository)
         {
-            //TODO: Добавить получение списка клиентов
-            throw new NotImplementedException();
+            _customerRepository = customerRepository;
+        }
+
+
+        [HttpGet]
+        public async Task<List<CustomerShortResponse>> GetCustomersAsync(CancellationToken cancellationToken)
+        {
+            var customers = await _customerRepository.GetAllAsync(cancellationToken);
+
+            var customersModelList = customers.Select(x =>
+                new CustomerShortResponse()
+                {
+                    Id = x.Id,
+                    Email = x.Email,
+                    FirstName = x.FirstName,
+                    LastName = x.LastName
+                }).ToList();
+
+            return customersModelList;
         }
 
         [HttpGet("{id}")]
