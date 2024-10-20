@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PromoCodeFactory.Core.Abstractions.Repositories;
 using PromoCodeFactory.Core.Domain;
 using PromoCodeFactory.DataAccess.Context;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PromoCodeFactory.DataAccess.Repositories
 {
-    public class EfRepository<T> : IRepository<T> where T : BaseEntity
+    public abstract class EfRepository<T> : IRepository<T> where T : BaseEntity
     {
         protected readonly DataContext Context;
         private readonly DbSet<T> _entitySet;
@@ -68,6 +68,17 @@ namespace PromoCodeFactory.DataAccess.Repositories
         public async Task<T> GetAsync(Guid id, CancellationToken cancellationToken)
         {
             return await _entitySet.FindAsync(id);
+        }
+
+        /// <summary>
+        /// Обновить в базе сущность.
+        /// </summary>
+        /// <param name="entity"> Сущность для обновления. </param>
+        /// <returns> Обновленная сущность. </returns>
+        public async Task<T> UpdateAsync(T entity, CancellationToken cancellationToken)
+        {
+            _entitySet.Update(entity);
+            return await _entitySet.FindAsync(entity.Id);
         }
 
         /// <summary>

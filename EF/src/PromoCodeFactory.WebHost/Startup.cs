@@ -27,11 +27,11 @@ namespace PromoCodeFactory.WebHost
             services.AddControllers();
             services.ConfigureContext(Configuration);
 
-            services.AddScoped<IRepository<Employee>, EfRepository<Employee>>();
-            services.AddScoped<IRepository<Customer>, EfRepository<Customer>>();
-            services.AddScoped<IRepository<Role>, EfRepository<Role>>();
-            services.AddScoped<IRepository<Preference>, EfRepository<Preference>>();
-            services.AddScoped<IRepository<PromoCode>, EfRepository<PromoCode>>();
+            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<IPreferenceRepository, PreferenceRepository>();
+            services.AddScoped<IPromoCodeRepository, PromoCodeRepository>();
 
             services.AddOpenApiDocument(options =>
             {

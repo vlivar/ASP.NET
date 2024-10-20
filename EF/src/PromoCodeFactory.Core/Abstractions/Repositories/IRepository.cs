@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,6 +37,13 @@ namespace PromoCodeFactory.Core.Abstractions.Repositories
         /// <param name="id"> Id удалённой сущности. </param>
         /// <returns> Была ли сущность удалена. </returns>
         Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Обновить сущность.
+        /// </summary>
+        /// <param name="entity"> Сущность для обновления. </param>
+        /// <returns> Обновленная сущность. </returns>
+        Task<T> UpdateAsync(T entity, CancellationToken cancellationToken);
 
         /// <summary>
         /// Сохранить изменения.

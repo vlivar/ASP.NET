@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -19,9 +19,9 @@ namespace PromoCodeFactory.WebHost.Controllers
     [Route("api/v1/[controller]")]
     public class RolesController
     {
-        private readonly IRepository<Role> _rolesRepository;
+        private readonly IRoleRepository _rolesRepository;
 
-        public RolesController(IRepository<Role> rolesRepository)
+        public RolesController(IRoleRepository rolesRepository)
         {
             _rolesRepository = rolesRepository;
         }
