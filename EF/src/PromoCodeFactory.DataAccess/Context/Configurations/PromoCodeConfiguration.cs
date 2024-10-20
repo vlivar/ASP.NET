@@ -29,6 +29,7 @@ internal class PromoCodeConfiguration : IEntityTypeConfiguration<PromoCode>
 
         builder.HasOne(pc => pc.Customer)
             .WithMany(c => c.PromoCodes)
-            .HasForeignKey(pc => pc.CustomerId);
+            .HasForeignKey(pc => pc.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
