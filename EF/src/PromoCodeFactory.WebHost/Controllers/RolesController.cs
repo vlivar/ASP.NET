@@ -58,7 +58,7 @@ namespace PromoCodeFactory.WebHost.Controllers
                 Description = role.Description,
                 Id = Guid.NewGuid()
             };
-            var newPole = await _rolesRepository.AddAsync(roleItem);
+            var newPole = await _rolesRepository.AddAsync(roleItem, cancellationToken);
             await _rolesRepository.SaveChangesAsync();
             var rolesModel = 
                 new RoleItemResponse()

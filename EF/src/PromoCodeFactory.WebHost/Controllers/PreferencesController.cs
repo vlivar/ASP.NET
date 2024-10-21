@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Castle.Components.DictionaryAdapter.Xml;
+using Microsoft.AspNetCore.Mvc;
 using PromoCodeFactory.Core.Abstractions.Repositories;
 using PromoCodeFactory.WebHost.Models.Response;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ public class PreferencesController(IPreferenceRepository _preferenceRepository) 
     public async Task<ActionResult<IEnumerable<PreferenceResponse>>> GetAllPreferencesAsync(CancellationToken cancellationToken)
     {
         var preferences = await _preferenceRepository.GetAllAsync(cancellationToken);
-        var preferencesResponse = preferences.Select(p => new PreferenceResponse(p.Id, p.Name)).ToList();
+        var preferencesResponse = preferences.Select(p => new PreferenceResponse(p.Id, p.Name, p.Description ?? "")).ToList();
 
         return preferencesResponse;
     }

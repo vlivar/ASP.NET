@@ -17,8 +17,7 @@ namespace PromoCodeFactory.WebHost.Controllers
     [ApiController]
     [Route("api/v1/[controller]")]
     public class CustomersController(ICustomerRepository _customerRepository,
-        IPreferenceRepository _preferenceRepository,
-        IPromoCodeRepository _promoCodeRepository)
+        IPreferenceRepository _preferenceRepository)
         : ControllerBase
     {
         /// <summary>
@@ -59,7 +58,7 @@ namespace PromoCodeFactory.WebHost.Controllers
                 var pref = await _preferenceRepository.GetAsync(customerPreference.PreferenceId, cancellationToken);
                 if (pref != null)
                 {
-                    preferences.Add(new PreferenceResponse(pref.Id, pref.Name));
+                    preferences.Add(new PreferenceResponse(pref.Id, pref.Name, pref.Description ?? ""));
                 }
             }
 
@@ -94,7 +93,7 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// Создание нового клиента
         /// </summary>
         [HttpPost("create")]
-        public async Task<ActionResult<bool>> CreateCustomerAsync(CreateOrEditCustomerRequest request)
+        public async Task<ActionResult<bool>> CreateCustomerAsync(CreateOrEditCustomerRequest request, CancellationToken cancellationToken)
         {
             try
             {
@@ -112,7 +111,7 @@ namespace PromoCodeFactory.WebHost.Controllers
                     PreferenceId = pid
                 }).ToList();
 
-                var newCustomer = await _customerRepository.AddAsync(customer);
+                var newCustomer = await _customerRepository.AddAsync(customer, cancellationToken);
                 if (newCustomer == null)
                 {
                     return BadRequest();

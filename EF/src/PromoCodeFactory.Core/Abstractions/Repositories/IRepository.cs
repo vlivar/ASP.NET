@@ -29,7 +29,7 @@ namespace PromoCodeFactory.Core.Abstractions.Repositories
         /// </summary>
         /// <param name="entity"> Сущность для добавления. </param>
         /// <returns> Добавленная сущность. </returns>
-        Task<T> AddAsync(T entity);
+        Task<T> AddAsync(T entity, CancellationToken cancellationToken);
 
         /// <summary>
         /// Удалить сущность.

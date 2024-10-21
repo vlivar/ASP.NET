@@ -9,7 +9,7 @@ internal class PromoCodeConfiguration : IEntityTypeConfiguration<PromoCode>
     public void Configure(EntityTypeBuilder<PromoCode> builder)
     {
         builder.Property(pc => pc.Code)
-            .HasMaxLength(50)
+            .HasMaxLength(100)
             .IsRequired();
 
         builder.Property(pc => pc.ServiceInfo)

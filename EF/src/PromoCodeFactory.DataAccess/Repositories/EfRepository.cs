@@ -25,7 +25,7 @@ namespace PromoCodeFactory.DataAccess.Repositories
         /// </summary>
         /// <param name="entity"> Сущность для добавления. </param>
         /// <returns> Добавленная сущность. </returns>
-        public async Task<T> AddAsync(T entity)
+        public async Task<T> AddAsync(T entity, CancellationToken cancellationToken)
         {
             return (await _entitySet.AddAsync(entity)).Entity;
         }

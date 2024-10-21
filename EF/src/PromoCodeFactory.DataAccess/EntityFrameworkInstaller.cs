@@ -24,10 +24,10 @@ public static class EntityFrameworkInstaller
         using (var scope = services.BuildServiceProvider().CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
-            dbContext.Database.EnsureDeleted();
-            dbContext.Database.EnsureCreated();
+            //dbContext.Database.EnsureDeleted();
+            //dbContext.Database.EnsureCreated();
 
-            SeedDatabase(dbContext);
+            //SeedDatabase(dbContext);
         }
 
         return services;
