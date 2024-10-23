@@ -27,7 +27,7 @@ namespace PromoCodeFactory.DataAccess.Repositories
         /// <returns> Добавленная сущность. </returns>
         public async Task<T> AddAsync(T entity, CancellationToken cancellationToken)
         {
-            return (await _entitySet.AddAsync(entity)).Entity;
+            return (await _entitySet.AddAsync(entity, cancellationToken)).Entity;
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace PromoCodeFactory.DataAccess.Repositories
         /// <returns> Была ли сущность удалена. </returns>
         public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
         {
-            var deleteEntity = await _entitySet.FindAsync(id);
+            var deleteEntity = await _entitySet.FindAsync(id, cancellationToken);
             if (deleteEntity == null)
             {
                 return false;
@@ -50,13 +50,10 @@ namespace PromoCodeFactory.DataAccess.Repositories
         /// Запросить все сущности в базе.
         /// </summary>
         /// <param name="cancellationToken"> Токен отмены </param>
-        /// <param name="asNoTracking"> Вызвать с AsNoTracking. </param>
         /// <returns> Список сущностей. </returns>
-        public async Task<List<T>> GetAllAsync(CancellationToken cancellationToken, bool asNoTracking = false)
+        public async Task<List<T>> GetAllAsync(CancellationToken cancellationToken)
         {
-            return asNoTracking ?
-               await _entitySet.AsNoTracking().ToListAsync(cancellationToken) :
-               await _entitySet.ToListAsync(cancellationToken);
+            return await _entitySet.ToListAsync(cancellationToken);
         }
 
         /// <summary>
@@ -67,7 +64,7 @@ namespace PromoCodeFactory.DataAccess.Repositories
         /// <returns> Cущность. </returns>
         public async Task<T> GetAsync(Guid id, CancellationToken cancellationToken)
         {
-            return await _entitySet.FindAsync(id);
+            return await _entitySet.FindAsync(id, cancellationToken);
         }
 
         /// <summary>
@@ -78,7 +75,7 @@ namespace PromoCodeFactory.DataAccess.Repositories
         public async Task<T> UpdateAsync(T entity, CancellationToken cancellationToken)
         {
             _entitySet.Update(entity);
-            return await _entitySet.FindAsync(entity.Id);
+            return await _entitySet.FindAsync(entity.Id, cancellationToken);
         }
 
         /// <summary>

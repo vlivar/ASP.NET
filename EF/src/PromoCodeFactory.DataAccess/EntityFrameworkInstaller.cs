@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using PromoCodeFactory.Core.Domain.Administration;
+using System.Threading.Tasks;
 using PromoCodeFactory.Core.Domain.PromoCodeManagement;
 using PromoCodeFactory.DataAccess.Context;
 using PromoCodeFactory.DataAccess.Data;
@@ -13,48 +10,28 @@ namespace PromoCodeFactory.DataAccess;
 
 public static class EntityFrameworkInstaller
 {
-    public static IServiceCollection ConfigureContext(this IServiceCollection services, IConfiguration configuration)
+    public static async Task SeedDatabase(DataContext context)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-        services.AddDbContext<DataContext>(optionsBuilder
-            => optionsBuilder
-            .UseLazyLoadingProxies()
-            .UseSqlite(connectionString));
+        var roles = FakeDataFactory.Roles.ToList();
+        await context.Roles.AddRangeAsync(roles);
+        await context.SaveChangesAsync();
 
-        using (var scope = services.BuildServiceProvider().CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
-            //dbContext.Database.EnsureDeleted();
-            //dbContext.Database.EnsureCreated();
+        var employees = FakeDataFactory.Employees.ToList();
+        await context.Employees.AddRangeAsync(employees);
+        await context.SaveChangesAsync();
 
-            //SeedDatabase(dbContext);
-        }
+        var preferences = FakeDataFactory.Preferences.ToList();
+        await context.Preferences.AddRangeAsync(preferences);
+        await context.SaveChangesAsync();
 
-        return services;
-    }
-
-    private static void SeedDatabase(DataContext context)
-    {
-        List<Role> roles = FakeDataFactory.Roles.ToList();
-        context.Roles.AddRange(roles);
-        context.SaveChanges();
-
-        List<Employee> employees = FakeDataFactory.Employees.ToList();
-        context.Employees.AddRange(employees);
-        context.SaveChanges();
-
-        List<Preference> preferences = FakeDataFactory.Preferences.ToList();
-        context.Preferences.AddRange(preferences);
-        context.SaveChanges();
-
-        List<Customer> customers = FakeDataFactory.Customers.ToList();
-        context.Customers.AddRange(customers);
-        context.SaveChanges();
+        var customers = FakeDataFactory.Customers.ToList();
+        await context.Customers.AddRangeAsync(customers);
+        await context.SaveChangesAsync();
 
         List<CustomerPreference> customerPreferences = new();
-        foreach (Customer customer in customers)
+        foreach (var customer in customers)
         {
-            foreach (Preference preference in preferences)
+            foreach (var preference in preferences)
             {
                 customerPreferences.Add(new CustomerPreference
                 {
@@ -64,17 +41,17 @@ public static class EntityFrameworkInstaller
                 });
             }
         }
-        context.CustomerPreferences.AddRange(customerPreferences);
-        context.SaveChanges();
+        await context.CustomerPreferences.AddRangeAsync(customerPreferences);
+        await context.SaveChangesAsync();
 
-        List<PromoCode> promoCodes = FakeDataFactory.PromoCodes.ToList();
-        foreach (PromoCode promoCode in promoCodes)
+        var promoCodes = FakeDataFactory.PromoCodes.ToList();
+        foreach (var promoCode in promoCodes)
         {
             promoCode.Preference = preferences.First(p => p.Id == promoCode.PreferenceId);
             promoCode.PartnerManager = employees.First(e => e.Id == promoCode.EmployeeId);
             promoCode.Customer = customers.First(c => c.Id == promoCode.CustomerId);
-            context.PromoCodes.Add(promoCode);
+            await context.PromoCodes.AddAsync(promoCode);
         }
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 }

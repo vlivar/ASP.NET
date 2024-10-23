@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PromoCodeFactory.Core.Abstractions.Repositories;
-using PromoCodeFactory.DataAccess;
+using PromoCodeFactory.DataAccess.Context;
 using PromoCodeFactory.DataAccess.Repositories;
+using PromoCodeFactory.WebHost.Services;
 
 namespace PromoCodeFactory.WebHost
 {
@@ -23,13 +25,20 @@ namespace PromoCodeFactory.WebHost
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.ConfigureContext(Configuration);
+
+            var connectionString = Configuration.GetConnectionString("DefaultConnection");
+            services.AddDbContext<DataContext>(optionsBuilder
+                => optionsBuilder
+                .UseLazyLoadingProxies()
+                .UseSqlite(connectionString));
 
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<ICustomerRepository, CustomerRepository>();
             services.AddScoped<IPreferenceRepository, PreferenceRepository>();
             services.AddScoped<IPromoCodeRepository, PromoCodeRepository>();
+
+            services.AddScoped<IPromoCodeService, PromoCodeService>();
 
             services.AddOpenApiDocument(options =>
             {

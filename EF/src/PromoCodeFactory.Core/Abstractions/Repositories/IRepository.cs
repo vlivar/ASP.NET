@@ -12,9 +12,8 @@ namespace PromoCodeFactory.Core.Abstractions.Repositories
         /// Запросить все сущности в базе.
         /// </summary>
         /// <param name="cancellationToken"> Токен отмены. </param>
-        /// <param name="asNoTracking"> Вызвать с AsNoTracking. </param>
         /// <returns> Список сущностей. </returns>
-        Task<List<T>> GetAllAsync(CancellationToken cancellationToken, bool asNoTracking = false);
+        Task<List<T>> GetAllAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Получить сущность по Id.
