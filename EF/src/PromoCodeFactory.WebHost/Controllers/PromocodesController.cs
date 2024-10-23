@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using PromoCodeFactory.WebHost.Models;
+using PromoCodeFactory.WebHost.Models.Requests;
+using PromoCodeFactory.WebHost.Models.Response;
+using PromoCodeFactory.WebHost.Services;
 
 namespace PromoCodeFactory.WebHost.Controllers
 {
@@ -11,18 +14,23 @@ namespace PromoCodeFactory.WebHost.Controllers
     /// </summary>
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class PromocodesController
-        : ControllerBase
+    public class PromocodesController(IPromoCodeService _promoCodeService) : ControllerBase
     {
         /// <summary>
         /// Получить все промокоды
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
-        public Task<ActionResult<List<PromoCodeShortResponse>>> GetPromocodesAsync()
+        [HttpGet("all")]
+        public async Task<ActionResult<List<PromoCodeShortResponse>>> GetPromocodesAsync(CancellationToken cancellationToken)
         {
-            //TODO: Получить все промокоды 
-            throw new NotImplementedException();
+            try
+            {
+                return await _promoCodeService.GetAllPromoCodesAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         /// <summary>
@@ -30,10 +38,16 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        public Task<IActionResult> GivePromoCodesToCustomersWithPreferenceAsync(GivePromoCodeRequest request)
+        public async Task<ActionResult<bool>> GivePromoCodesToCustomersWithPreferenceAsync(GivePromoCodeRequest request, CancellationToken cancellationToken)
         {
-            //TODO: Создать промокод и выдать его клиентам с указанным предпочтением
-            throw new NotImplementedException();
+            try
+            {
+                return await _promoCodeService.GivePromoCodesToCustomersWithPreferenceAsync(request, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
