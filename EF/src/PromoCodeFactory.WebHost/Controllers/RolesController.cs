@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PromoCodeFactory.Core.Abstractions.Repositories;
 using PromoCodeFactory.Core.Domain.Administration;
-using PromoCodeFactory.WebHost.Models;
+using PromoCodeFactory.WebHost.Models.Requests;
+using PromoCodeFactory.WebHost.Models.Response;
 
 namespace PromoCodeFactory.WebHost.Controllers
 {
@@ -15,9 +18,9 @@ namespace PromoCodeFactory.WebHost.Controllers
     [Route("api/v1/[controller]")]
     public class RolesController
     {
-        private readonly IRepository<Role> _rolesRepository;
+        private readonly IRoleRepository _rolesRepository;
 
-        public RolesController(IRepository<Role> rolesRepository)
+        public RolesController(IRoleRepository rolesRepository)
         {
             _rolesRepository = rolesRepository;
         }
@@ -27,9 +30,9 @@ namespace PromoCodeFactory.WebHost.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<IEnumerable<RoleItemResponse>> GetRolesAsync()
+        public async Task<IEnumerable<RoleItemResponse>> GetRolesAsync(CancellationToken cancellationToken)
         {
-            var roles = await _rolesRepository.GetAllAsync();
+            var roles = await _rolesRepository.GetAllAsync(cancellationToken);
 
             var rolesModelList = roles.Select(x =>
                 new RoleItemResponse()
@@ -40,6 +43,32 @@ namespace PromoCodeFactory.WebHost.Controllers
                 }).ToList();
 
             return rolesModelList;
+        }
+
+        /// <summary>
+        /// Добавить новую роль для сотрудников
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<RoleItemResponse> AddRolesAsync(CancellationToken cancellationToken, RoleRequest role)
+        {
+            var roleItem = new Role()
+            {
+                Name = role.Name,
+                Description = role.Description,
+                Id = Guid.NewGuid()
+            };
+            var newPole = await _rolesRepository.AddAsync(roleItem, cancellationToken);
+            await _rolesRepository.SaveChangesAsync();
+            var rolesModel = 
+                new RoleItemResponse()
+                {
+                    Id = newPole.Id,
+                    Name = newPole.Name,
+                    Description = newPole.Description
+                };
+
+            return rolesModel;
         }
     }
 }
