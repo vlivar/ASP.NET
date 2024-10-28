@@ -130,21 +130,24 @@ namespace PromoCodeFactory.WebHost.Controllers
         {
             try
             {
-                var customer = new Customer
+                var editCustomer = await _customerRepository.GetAsync(id, cancellationToken);
+                if (editCustomer == null)
                 {
-                    Id = id,
-                    FirstName = request.FirstName,
-                    LastName = request.LastName,
-                    Email = request.Email,
-                };
+                    return NotFound();
+                }
 
-                customer.CustomerPreferences = request.PreferenceIds.Select(pid => new CustomerPreference
+                editCustomer.CustomerPreferences.Clear();
+
+                editCustomer.FirstName = request.FirstName;
+                editCustomer.LastName = request.LastName;
+                editCustomer.Email = request.Email;
+                editCustomer.CustomerPreferences = request.PreferenceIds.Select(pid => new CustomerPreference
                 {
-                    CustomerId = customer.Id,
+                    CustomerId = editCustomer.Id,
                     PreferenceId = pid
                 }).ToList();
 
-                var updateCustomer = _customerRepository.UpdateAsync(customer, cancellationToken);
+                var updateCustomer = await _customerRepository.UpdateAsync(editCustomer, cancellationToken);
                 if (updateCustomer == null)
                 {
                     return BadRequest();
