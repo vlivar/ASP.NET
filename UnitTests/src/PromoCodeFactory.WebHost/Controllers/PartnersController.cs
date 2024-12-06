@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PromoCodeFactory.Core.Abstractions.Repositories;
 using PromoCodeFactory.Core.Domain.PromoCodeManagement;
+using PromoCodeFactory.WebHost.Helpers;
 using PromoCodeFactory.WebHost.Models;
 
 namespace PromoCodeFactory.WebHost.Controllers
@@ -73,7 +74,7 @@ namespace PromoCodeFactory.WebHost.Controllers
             
             return Ok(response);
         }
-        
+
         [HttpPost("{id}/limits")]
         public async Task<IActionResult> SetPartnerPromoCodeLimitAsync(Guid id, SetPartnerPromoCodeLimitRequest request)
         {
@@ -81,45 +82,23 @@ namespace PromoCodeFactory.WebHost.Controllers
 
             if (partner == null)
                 return NotFound();
-            
-            //Если партнер заблокирован, то нужно выдать исключение
+
             if (!partner.IsActive)
                 return BadRequest("Данный партнер не активен");
-            
-            //Установка лимита партнеру
-            var activeLimit = partner.PartnerLimits.FirstOrDefault(x => 
-                !x.CancelDate.HasValue);
-            
-            if (activeLimit != null)
-            {
-                //Если партнеру выставляется лимит, то мы 
-                //должны обнулить количество промокодов, которые партнер выдал, если лимит закончился, 
-                //то количество не обнуляется
-                partner.NumberIssuedPromoCodes = 0;
-                
-                //При установке лимита нужно отключить предыдущий лимит
-                activeLimit.CancelDate = DateTime.Now;
-            }
 
             if (request.Limit <= 0)
                 return BadRequest("Лимит должен быть больше 0");
-            
-            var newLimit = new PartnerPromoCodeLimit()
-            {
-                Limit = request.Limit,
-                Partner = partner,
-                PartnerId = partner.Id,
-                CreateDate = DateTime.Now,
-                EndDate = request.EndDate
-            };
-            
+
+            partner.ProcessActiveLimit();
+
+            var newLimit = PartnerHelper.CreateNewLimit(partner, request);
             partner.PartnerLimits.Add(newLimit);
 
             await _partnersRepository.UpdateAsync(partner);
-            
-            return CreatedAtAction(nameof(GetPartnerLimitAsync), new {id = partner.Id, limitId = newLimit.Id}, null);
+
+            return CreatedAtAction(nameof(GetPartnerLimitAsync), new { id = partner.Id, limitId = newLimit.Id }, null);
         }
-        
+
         [HttpPost("{id}/canceledLimits")]
         public async Task<IActionResult> CancelPartnerPromoCodeLimitAsync(Guid id)
         {
