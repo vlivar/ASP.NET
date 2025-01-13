@@ -8,8 +8,9 @@ using Microsoft.AspNetCore.Mvc;
  using Pcf.ReceivingFromPartner.Core.Abstractions.Repositories;
  using Pcf.ReceivingFromPartner.Core.Domain;
  using Pcf.ReceivingFromPartner.WebHost.Mappers;
+using Pcf.ReceivingFromPartner.WebHost.Cache;
 
- namespace Pcf.ReceivingFromPartner.WebHost.Controllers
+namespace Pcf.ReceivingFromPartner.WebHost.Controllers
 {
     /// <summary>
     /// Партнеры
@@ -24,18 +25,21 @@ using Microsoft.AspNetCore.Mvc;
         private readonly INotificationGateway _notificationGateway;
         private readonly IGivingPromoCodeToCustomerGateway _givingPromoCodeToCustomerGateway;
         private readonly IAdministrationGateway _administrationGateway;
+        private readonly PreferenceCache _preferencesCache;
 
         public PartnersController(IRepository<Partner> partnersRepository,
             IRepository<Preference> preferencesRepository, 
             INotificationGateway notificationGateway,
             IGivingPromoCodeToCustomerGateway givingPromoCodeToCustomerGateway,
-            IAdministrationGateway administrationGateway)
+            IAdministrationGateway administrationGateway,
+            PreferenceCache preferencesCache)
         {
             _partnersRepository = partnersRepository;
             _preferencesRepository = preferencesRepository;
             _notificationGateway = notificationGateway;
             _givingPromoCodeToCustomerGateway = givingPromoCodeToCustomerGateway;
             _administrationGateway = administrationGateway;
+            _preferencesCache = preferencesCache;
         }
 
         /// <summary>
@@ -317,11 +321,25 @@ using Microsoft.AspNetCore.Mvc;
             }
 
             //Получаем предпочтение по имени
-            var preference = await _preferencesRepository.GetByIdAsync(request.PreferenceId);
+            Preference? preference = null;
+            preference = await _preferencesCache.GetPreferenceAsync(request.PreferenceId);
 
             if (preference == null)
             {
-                return BadRequest("Предпочтение не найдено");
+                preference = await _preferencesRepository.GetByIdAsync(request.PreferenceId);
+                if (preference != null)
+                {
+                    Console.WriteLine($"Preference извлечен из базы данных");
+                    await _preferencesCache.SavePreferenceAsync(preference);
+                }
+                else
+                {
+                    return BadRequest("Предпочтение не найдено");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Preference извлечен из cache");
             }
 
             PromoCode promoCode = PromoCodeMapper.MapFromModel(request, preference, partner);
