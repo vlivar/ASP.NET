@@ -337,7 +337,7 @@ namespace Pcf.ReceivingFromPartner.WebHost.Controllers
 
             await _partnersRepository.UpdateAsync(partner);
 
-            await _promoCodeProducer.SendMessageAsync(promoCode, ct);
+            await _promoCodeProducer.SendMessageAsync(PromoCodeMapper.MapFromRabbitDto(promoCode), ct);
 
             return CreatedAtAction(nameof(GetPartnerPromoCodeAsync),
                 new { id = partner.Id, promoCodeId = promoCode.Id }, null);

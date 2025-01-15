@@ -1,9 +1,8 @@
-﻿using Pcf.ReceivingFromPartner.RabbitMQ.Producers.Interface;
+﻿using Newtonsoft.Json;
+using Pcf.ReceivingFromPartner.RabbitMQ.Producers.Interface;
 using RabbitMQ.Client;
 using System;
-using System.Data.Common;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,7 +29,12 @@ public class PromoCodeProducer : IPromoCodeProducer, IAsyncDisposable
             await InitializeAsync(ct);
         }
 
-        var json = JsonSerializer.Serialize(message);
+        var json = JsonConvert.SerializeObject(message, new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            Formatting = Formatting.Indented
+        });
+
         var content = Encoding.UTF8.GetBytes(json);
 
         await _channel.BasicPublishAsync(

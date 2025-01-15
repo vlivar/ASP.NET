@@ -15,6 +15,8 @@ using Pcf.GivingToCustomer.Integration;
 using Microsoft.Extensions.Options;
 using Pcf.GivingToCustomer.RabbitMQ;
 using Pcf.GivingToCustomer.RabbitMQ.Consumers;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Pcf.GivingToCustomer.WebHost
 {
@@ -61,7 +63,7 @@ namespace Pcf.GivingToCustomer.WebHost
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IDbInitializer dbInitializer)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IDbInitializer dbInitializer, IPromoCodeConsumer promoCodeConsumer)
         {
             if (env.IsDevelopment())
             {
@@ -88,6 +90,12 @@ namespace Pcf.GivingToCustomer.WebHost
             });
 
             dbInitializer.InitializeDb();
+
+            var cts = new CancellationTokenSource();
+            Task.Run(async () =>
+            {
+                await promoCodeConsumer.StartAsync(cts.Token);
+            });
         }
     }
 }
