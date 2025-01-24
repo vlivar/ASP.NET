@@ -15,8 +15,7 @@ using Pcf.GivingToCustomer.Integration;
 using Microsoft.Extensions.Options;
 using Pcf.GivingToCustomer.RabbitMQ;
 using Pcf.GivingToCustomer.RabbitMQ.Consumers;
-using System.Threading.Tasks;
-using System.Threading;
+using MassTransit;
 
 namespace Pcf.GivingToCustomer.WebHost
 {
@@ -33,12 +32,30 @@ namespace Pcf.GivingToCustomer.WebHost
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<RabbitMQSettings>(Configuration.GetSection("RmqSettings"));
-            services.AddSingleton<IPromoCodeConsumer>(serviceProvider =>
+            services.AddMassTransit(x =>
             {
-                var settings = serviceProvider.GetRequiredService<IOptions<RabbitMQSettings>>().Value;
-                return new PromoCodeConsumer(settings);
+                x.AddConsumer<PromoCodeConsumer>();
+
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(Configuration["IntegrationSettings:RabbitMqHost"], Configuration["IntegrationSettings:RabbitMqVHost"], c =>
+                    {
+
+                        c.Username(Configuration["IntegrationSettings:RabbitMqLogin"]);
+                        c.Password(Configuration["IntegrationSettings:RabbitMqPassword"]);
+                    });
+
+                    cfg.ReceiveEndpoint(Configuration["IntegrationSettings:RabbitPromoCodeQueueName"], e =>
+                    {
+                        e.ConfigureConsumer<PromoCodeConsumer>(context);
+                    });
+
+                    cfg.ClearSerialization();
+                    cfg.UseRawJsonSerializer();
+                    cfg.ConfigureEndpoints(context);
+                });
             });
+
 
             services.AddControllers().AddMvcOptions(x =>
                 x.SuppressAsyncSuffixInActionNames = false);
@@ -63,7 +80,7 @@ namespace Pcf.GivingToCustomer.WebHost
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IDbInitializer dbInitializer, IPromoCodeConsumer promoCodeConsumer)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IDbInitializer dbInitializer)
         {
             if (env.IsDevelopment())
             {
@@ -90,12 +107,6 @@ namespace Pcf.GivingToCustomer.WebHost
             });
 
             dbInitializer.InitializeDb();
-
-            var cts = new CancellationTokenSource();
-            Task.Run(async () =>
-            {
-                await promoCodeConsumer.StartAsync(cts.Token);
-            });
         }
     }
 }

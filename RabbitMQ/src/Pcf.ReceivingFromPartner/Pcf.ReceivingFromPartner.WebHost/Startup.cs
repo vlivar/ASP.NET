@@ -32,12 +32,8 @@ namespace Pcf.ReceivingFromPartner.WebHost
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<RabbitMQSettings>(Configuration.GetSection("RmqSettings"));
-            services.AddSingleton<IPromoCodeProducer>(serviceProvider =>
-            {
-                var settings = serviceProvider.GetRequiredService<IOptions<RabbitMQSettings>>().Value;
-                return new PromoCodeProducer(settings);
-            });
+            services.Configure<RabbitMQSettings>(options => Configuration.GetSection("RmqSettings").Bind(options));
+            services.AddSingleton<IPromoCodeProducer, PromoCodeProducer>();
 
             services.AddControllers().AddMvcOptions(x =>
                 x.SuppressAsyncSuffixInActionNames = false);

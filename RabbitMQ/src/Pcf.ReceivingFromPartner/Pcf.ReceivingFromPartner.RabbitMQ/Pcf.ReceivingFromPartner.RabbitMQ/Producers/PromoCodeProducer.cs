@@ -5,21 +5,22 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace Pcf.ReceivingFromPartner.RabbitMQ.Producers;
 
 public class PromoCodeProducer : IPromoCodeProducer, IAsyncDisposable
 {
-    private readonly RabbitMQSettings _settings;
+    private readonly IOptions<RabbitMQSettings> _rabbitMqSettings;
 
     private const string _exchange = "PromoCodeQueue";
     private const string _routingKey = "";
 
     private IChannel _channel;
 
-    public PromoCodeProducer(RabbitMQSettings settings)
+    public PromoCodeProducer(IOptions<RabbitMQSettings> rabbitMqSettings)
     {
-        _settings = settings;
+        _rabbitMqSettings = rabbitMqSettings;
     }
 
     public async Task SendMessageAsync<T>(T message, CancellationToken ct)
@@ -48,21 +49,14 @@ public class PromoCodeProducer : IPromoCodeProducer, IAsyncDisposable
     {
         var factory = new ConnectionFactory()
         {
-            HostName = _settings.Host,
-            VirtualHost = _settings.VHost,
-            UserName = _settings.Login,
-            Password = _settings.Password
+            HostName = _rabbitMqSettings.Value.Host,
+            VirtualHost = _rabbitMqSettings.Value.VHost,
+            UserName = _rabbitMqSettings.Value.Login,
+            Password = _rabbitMqSettings.Value.Password
         };
 
         var connection = await factory.CreateConnectionAsync(ct);
         _channel = await connection.CreateChannelAsync(null, ct);
-
-        await _channel.QueueDeclareAsync(queue: _exchange,
-                                        durable: false,
-                                        exclusive: false,
-                                        autoDelete: false,
-                                        arguments: null,
-                                        cancellationToken: ct);
     }
 
     public async ValueTask DisposeAsync()
