@@ -11,6 +11,7 @@ WORKDIR /src
 COPY ["Pcf.Administration/Pcf.Administration.WebHost/Pcf.Administration.WebHost.csproj", "Pcf.Administration/Pcf.Administration.WebHost/"]
 COPY ["Pcf.Administration/Pcf.Administration.Core/Pcf.Administration.Core.csproj", "Pcf.Administration/Pcf.Administration.Core/"]
 COPY ["Pcf.Administration/Pcf.Administration.DataAccess/Pcf.Administration.DataAccess.csproj", "Pcf.Administration/Pcf.Administration.DataAccess/"]
+COPY ["Pcf.Administration/Pcf.Administration.RabbitMQ/Pcf.Administration.RabbitMQ/Pcf.Administration.RabbitMQ.csproj", "Pcf.Administration/Pcf.Administration.RabbitMQ/Pcf.Administration.RabbitMQ/"]
 RUN dotnet restore "./Pcf.Administration/Pcf.Administration.WebHost/./Pcf.Administration.WebHost.csproj"
 COPY . .
 WORKDIR "/src/Pcf.Administration/Pcf.Administration.WebHost"
