@@ -11,7 +11,9 @@ services:
 
   #Administration Api
   promocode-factory-administration-api:
-    build: src/Pcf.Administration/
+    build:
+      context: src/Pcf.Administration/
+      dockerfile: Pcf.Administration.WebHost/Dockerfile
     container_name: 'promocode-factory-administration-api'
     restart: always
     ports:
@@ -20,7 +22,7 @@ services:
       - "ConnectionStrings:PromocodeFactoryAdministrationDb=Host=promocode-factory-administration-db;Database=promocode_factory_administration_db;Username=postgres;Password=docker"          
     depends_on: 
       - promocode-factory-administration-db
-
+      - rabbitmq
 
   #ReceivingFromPartner Db
   promocode-factory-receiving-from-partner-db:
@@ -34,17 +36,20 @@ services:
 
   #ReceivingFromPartner Api
   promocode-factory-receiving-from-partner-api:
-    build: src/Pcf.ReceivingFromPartner/
+    build:
+      context: src/Pcf.ReceivingFromPartner/
+      dockerfile: Pcf.ReceivingFromPartner.WebHost/Dockerfile
     container_name: 'promocode-factory-receiving-from-partner-api'
     restart: always
     ports:
       - "8092:8080"
     environment:
       - "ConnectionStrings:PromocodeFactoryReceivingFromPartnerDb=Host=promocode-factory-receiving-from-partner-db;Database=promocode_factory_receiving_from_partner_db;Username=postgres;Password=docker"
-      - "IntegrationSettings:GivingToCustomerApiUrl=http://promocode-factory-giving-to-customer-api"    
-      - "IntegrationSettings:AdministrationApiUrl=http://promocode-factory-administration-api"       
+      - "IntegrationSettings:GivingToCustomerApiUrl=http://promocode-factory-giving-to-customer-api:8080"    
+      - "IntegrationSettings:AdministrationApiUrl=http://promocode-factory-administration-api:8080"       
     depends_on: 
       - promocode-factory-receiving-from-partner-db
+      - rabbitmq
   
   #GivingToCustomer Db
   promocode-factory-giving-to-customer-db:
@@ -58,7 +63,9 @@ services:
 
   #GivingToCustomer Api
   promocode-factory-giving-to-customer-api:
-    build: src/Pcf.GivingToCustomer/
+    build:
+      context: src/Pcf.GivingToCustomer/
+      dockerfile: Pcf.GivingToCustomer.WebHost/Dockerfile
     container_name: 'promocode-factory-giving-to-customer-api'
     restart: always
     ports:
@@ -67,3 +74,21 @@ services:
       - "ConnectionStrings:PromocodeFactoryGivingToCustomerDb=Host=promocode-factory-giving-to-customer-db;Database=promocode_factory_giving_to_customer_db;Username=postgres;Password=docker"          
     depends_on: 
       - promocode-factory-giving-to-customer-db
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: 'rabbitmq'
+    restart: always
+    hostname: rabbitmqhost
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports: 
+      - "5672:5672"
+      - "15672:15672"
+      
+volumes:
+  rabbitmq_data:

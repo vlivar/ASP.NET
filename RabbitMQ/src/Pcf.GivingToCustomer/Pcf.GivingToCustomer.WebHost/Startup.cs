@@ -12,6 +12,10 @@ using Pcf.GivingToCustomer.DataAccess.Data;
 using Pcf.GivingToCustomer.DataAccess;
 using Pcf.GivingToCustomer.DataAccess.Repositories;
 using Pcf.GivingToCustomer.Integration;
+using Microsoft.Extensions.Options;
+using Pcf.GivingToCustomer.RabbitMQ;
+using Pcf.GivingToCustomer.RabbitMQ.Consumers;
+using MassTransit;
 
 namespace Pcf.GivingToCustomer.WebHost
 {
@@ -28,6 +32,31 @@ namespace Pcf.GivingToCustomer.WebHost
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMassTransit(x =>
+            {
+                x.AddConsumer<PromoCodeConsumer>();
+
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(Configuration["IntegrationSettings:RabbitMqHost"], Configuration["IntegrationSettings:RabbitMqVHost"], c =>
+                    {
+
+                        c.Username(Configuration["IntegrationSettings:RabbitMqLogin"]);
+                        c.Password(Configuration["IntegrationSettings:RabbitMqPassword"]);
+                    });
+
+                    cfg.ReceiveEndpoint(Configuration["IntegrationSettings:RabbitPromoCodeQueueName"], e =>
+                    {
+                        e.ConfigureConsumer<PromoCodeConsumer>(context);
+                    });
+
+                    cfg.ClearSerialization();
+                    cfg.UseRawJsonSerializer();
+                    cfg.ConfigureEndpoints(context);
+                });
+            });
+
+
             services.AddControllers().AddMvcOptions(x =>
                 x.SuppressAsyncSuffixInActionNames = false);
             services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
